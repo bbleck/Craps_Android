@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">Craps_Android</string>
+  <string name="app_name">CrapsSim</string>
   <string name="next_game">Next Game</string>
   <string name="play_fast">Play Fast</string>
   <string name="pause">Pause</string>

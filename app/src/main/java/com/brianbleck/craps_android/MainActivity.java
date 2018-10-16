@@ -1,14 +1,17 @@
 package com.brianbleck.craps_android;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import com.brianbleck.craps_android.model.Game;
+import com.brianbleck.craps_android.model.Game.Roll;
 import java.security.SecureRandom;
+import java.util.List;
 import java.util.Random;
-import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -21,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
   private TextView percentages;
   private boolean running;
   private Game game;
+  private ListView rolls;
+  private Thread runner;
 
 
   @Override
@@ -32,6 +37,13 @@ public class MainActivity extends AppCompatActivity {
     wins = findViewById(R.id.wins);
     losses = findViewById(R.id.losses);
     percentages = findViewById(R.id.percentage);
+    rolls = findViewById(R.id.rolls);
+  }
+
+  private void updateRolls(){
+    List<Roll> rolls = game.getRolls();
+    ArrayAdapter<Roll> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, rolls);
+    this.rolls.setAdapter(adapter);
   }
 
   private void updateTally(){
@@ -52,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
       case R.id.next:
         game.play();
         updateTally();
-        //todo: play one game
+        updateRolls();
+
         break;
       case R.id.fast:
         runFast(true);
@@ -61,7 +74,9 @@ public class MainActivity extends AppCompatActivity {
         runFast(false);
         break;
       case R.id.reset:
-        //todo: reset game tallies
+        game = new Game(new SecureRandom());
+        updateTally();
+        updateRolls();
         break;
       default:
         handled = super.onOptionsItemSelected(item);
@@ -99,10 +114,51 @@ public class MainActivity extends AppCompatActivity {
 
   private void runFast(boolean start){
     running = start;
-    //todo: start a thread to play
+    if(start){
+      runner = new Runner();
+      runner.start();
+    }else{
+      runner = null;
+    }
+
     invalidateOptionsMenu();
   }
 
+  private class Runner extends Thread{
 
+    private static final int TALLY_UPDATE_INTERVAL = 1000;
+    private static final int ROLLS_UPDATE_INTERVAL = 10000;
+    @Override
+    public void run() {
+      int count = 0;
+      while(running){
+        game.play();
+        count++;
+        if(count%TALLY_UPDATE_INTERVAL==0){
+          runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              updateTally();
+            }
+          });
+        }
+        if(count%ROLLS_UPDATE_INTERVAL==0){
+          runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+              updateRolls();
+            }
+          });
+        }
+      }
+      runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          updateTally();
+          updateRolls();
+        }
+      });
+    }
+  }
 
 }

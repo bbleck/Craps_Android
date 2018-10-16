@@ -4,9 +4,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 import com.brianbleck.craps_android.model.Game;
 import java.security.SecureRandom;
 import java.util.Random;
+import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -14,6 +16,9 @@ public class MainActivity extends AppCompatActivity {
   private MenuItem fast;
   private MenuItem pause;
   private MenuItem reset;
+  private TextView wins;
+  private TextView losses;
+  private TextView percentages;
   private boolean running;
   private Game game;
 
@@ -24,6 +29,18 @@ public class MainActivity extends AppCompatActivity {
     setContentView(R.layout.activity_main);
     Random rng = new SecureRandom();
     game = new Game(rng);
+    wins = findViewById(R.id.wins);
+    losses = findViewById(R.id.losses);
+    percentages = findViewById(R.id.percentage);
+  }
+
+  private void updateTally(){
+    int wins = game.getWins();
+    int losses = game.getLosses();
+    double percent = 100.0 * wins / (wins+losses);
+    this.wins.setText(getString(R.string.wins_format, wins));
+    this.losses.setText(getString(R.string.losses_format, losses));
+    this.percentages.setText(getString(R.string.percent_format, percent));
   }
 
 
@@ -33,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     boolean handled = true;//we handle the things we know about, and if it isn't we hand it off to the super class
     switch (item.getItemId()) {
       case R.id.next:
+        game.play();
+        updateTally();
         //todo: play one game
         break;
       case R.id.fast:

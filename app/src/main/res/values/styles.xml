@@ -25,4 +25,9 @@
     <item name="android:textColor">@color/grayish</item>
   </style>
 
+  <style name="total" parent="tally">
+    <item name="android:textSize">20sp</item>
+    <item name="android:textStyle">bold</item>
+  </style>
+
 </resources>

@@ -9,6 +9,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import com.brianbleck.craps_android.model.Game;
 import com.brianbleck.craps_android.model.Game.Roll;
+import com.brianbleck.craps_android.view.RollAdapter;
 import java.security.SecureRandom;
 import java.util.List;
 import java.util.Random;
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
   private Game game;
   private ListView rolls;
   private Thread runner;
+  private RollAdapter adapter;
 
 
   @Override
@@ -38,13 +40,14 @@ public class MainActivity extends AppCompatActivity {
     losses = findViewById(R.id.losses);
     percentages = findViewById(R.id.percentage);
     rolls = findViewById(R.id.rolls);
+    adapter = new RollAdapter(this);
+    rolls.setAdapter(adapter);
     updateTally(0, 0);
   }
 
   private void updateRolls(List<Roll> rolls) {
-    ArrayAdapter<Roll> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
-        rolls);
-    this.rolls.setAdapter(adapter);
+    adapter.clear();
+    adapter.addAll(rolls);
   }
 
   private void updateTally(int wins, int losses) {
@@ -106,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
     pause.setVisible(running);
     reset.setEnabled(!running);
     reset.setVisible(!running);
-    //todo: enable/disable individual item references
+    
     return true;//tells android to redraw the menu, because I might make things disappear, reappear
   }
 

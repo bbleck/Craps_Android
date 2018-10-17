@@ -38,18 +38,18 @@ public class MainActivity extends AppCompatActivity {
     losses = findViewById(R.id.losses);
     percentages = findViewById(R.id.percentage);
     rolls = findViewById(R.id.rolls);
+    updateTally(0, 0);
   }
 
-  private void updateRolls(){
-    List<Roll> rolls = game.getRolls();
-    ArrayAdapter<Roll> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, rolls);
+  private void updateRolls(List<Roll> rolls) {
+    ArrayAdapter<Roll> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1,
+        rolls);
     this.rolls.setAdapter(adapter);
   }
 
-  private void updateTally(){
-    int wins = game.getWins();
-    int losses = game.getLosses();
-    double percent = 100.0 * wins / (wins+losses);
+  private void updateTally(int wins, int losses) {
+    int total = wins + losses;
+    double percent = (total!=0) ? (100.0 * wins / total) : 0;
     this.wins.setText(getString(R.string.wins_format, wins));
     this.losses.setText(getString(R.string.losses_format, losses));
     this.percentages.setText(getString(R.string.percent_format, percent));
@@ -63,8 +63,8 @@ public class MainActivity extends AppCompatActivity {
     switch (item.getItemId()) {
       case R.id.next:
         game.play();
-        updateTally();
-        updateRolls();
+        updateTally(game.getWins(), game.getLosses());
+        updateRolls(game.getRolls());
 
         break;
       case R.id.fast:
@@ -75,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
         break;
       case R.id.reset:
         game = new Game(new SecureRandom());
-        updateTally();
-        updateRolls();
+        updateTally(game.getWins(), game.getLosses());
+        updateRolls(game.getRolls());
         break;
       default:
         handled = super.onOptionsItemSelected(item);
@@ -112,51 +112,47 @@ public class MainActivity extends AppCompatActivity {
 
 //+++++++++++++++++++++++  end of options menu overrides  +++++++++++++++++++++++++//
 
-  private void runFast(boolean start){
+  private void runFast(boolean start) {
     running = start;
-    if(start){
+    if (start) {
+      invalidateOptionsMenu();
       runner = new Runner();
       runner.start();
-    }else{
+    } else {
       runner = null;
     }
 
-    invalidateOptionsMenu();
+
   }
 
-  private class Runner extends Thread{
+  private class Runner extends Thread {
 
     private static final int TALLY_UPDATE_INTERVAL = 1000;
     private static final int ROLLS_UPDATE_INTERVAL = 10000;
+
     @Override
     public void run() {
       int count = 0;
-      while(running){
+      while (running) {
         game.play();
         count++;
-        if(count%TALLY_UPDATE_INTERVAL==0){
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-              updateTally();
-            }
-          });
+        if (count % TALLY_UPDATE_INTERVAL == 0) {
+          int wins = game.getWins();
+          int losses = game.getLosses();
+          runOnUiThread(() -> updateTally(wins, losses));
         }
-        if(count%ROLLS_UPDATE_INTERVAL==0){
-          runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-              updateRolls();
-            }
-          });
+        if (count % ROLLS_UPDATE_INTERVAL == 0) {
+          List<Roll> rolls = game.getRolls();
+          runOnUiThread(() -> updateRolls(rolls));
         }
       }
-      runOnUiThread(new Runnable() {
-        @Override
-        public void run() {
-          updateTally();
-          updateRolls();
-        }
+      runOnUiThread(() -> {
+        int wins = game.getWins();
+        int losses = game.getLosses();
+        List<Roll> rolls = game.getRolls();
+        updateTally(wins, losses);
+        updateRolls(rolls);
+        invalidateOptionsMenu();
       });
     }
   }

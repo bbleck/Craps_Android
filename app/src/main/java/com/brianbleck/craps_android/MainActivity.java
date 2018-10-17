@@ -108,8 +108,8 @@ public class MainActivity extends AppCompatActivity {
     pause.setEnabled(running);
     pause.setVisible(running);
     reset.setEnabled(!running);
-    reset.setVisible(!running);
-    
+//    reset.setVisible(!running);
+
     return true;//tells android to redraw the menu, because I might make things disappear, reappear
   }
 
